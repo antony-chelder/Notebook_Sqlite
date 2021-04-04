@@ -8,4 +8,8 @@
     <color name="text_color">#272727</color>
     <color name="color_background">#F4B352</color>
     <color name="grey">#D3CFCA</color>
+    <color name="colorPrimaryPix">#F8A429</color>
+    <color name="colorPrimaryLightPix">#F8A429</color>
 </resources>
+
+
