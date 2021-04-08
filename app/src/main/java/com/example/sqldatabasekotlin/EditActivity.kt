@@ -14,6 +14,9 @@ import com.fxn.pix.Options
 import com.fxn.pix.Pix
 import com.fxn.utility.PermUtil
 import kotlinx.android.synthetic.main.edit_activity.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
@@ -47,9 +50,9 @@ class EditActivity : AppCompatActivity() {
                 val returnValue: ArrayList<String> =
                     data.getStringArrayListExtra(Pix.IMAGE_RESULTS) as ArrayList<String>
                 if (returnValue.size == 1)
-                     tempImageUri = returnValue[0].toString()
-                     val imagefile = File(tempImageUri)
-                     mainImage.setImageURI(Uri.fromFile(imagefile))
+                    tempImageUri = returnValue[0].toString()
+                val imagefile = File(tempImageUri)
+                mainImage.setImageURI(Uri.fromFile(imagefile))
 
 
             }
@@ -113,27 +116,19 @@ class EditActivity : AppCompatActivity() {
         val myTitle = edTtitle.text.toString()
         val myDesc = edDesc.text.toString()
 
+        if (myTitle.isNotEmpty() && myDesc.isNotEmpty()) {
 
-        if (isEditState) {
-            if (myTitle.isNotEmpty() && myDesc.isNotEmpty()) {
-                myDbManager.UpdateItem(myTitle, myDesc, tempImageUri, id, getCurrentTime())
+            CoroutineScope(Dispatchers.Main).launch {
+
+                if (isEditState) {
+                    myDbManager.UpdateItem(myTitle, myDesc, tempImageUri, id, getCurrentTime())
+
+                } else {
+                    myDbManager.InsertToDb(myTitle, myDesc, tempImageUri, getCurrentTime())
+                }
                 finish()
-            } else {
-                Toast.makeText(this, R.string.forget_fill, Toast.LENGTH_LONG).show()
-
             }
-
-        } else {
-            if (myTitle.isNotEmpty() && myDesc.isNotEmpty()) {
-                myDbManager.InsertToDb(myTitle, myDesc, tempImageUri, getCurrentTime())
-                finish()
-
-            } else {
-                Toast.makeText(this, R.string.forget_fill, Toast.LENGTH_LONG).show()
-            }
-
-
-        }
+        } else Toast.makeText(this,R.string.forget_fill,Toast.LENGTH_LONG).show()
 
     }
 

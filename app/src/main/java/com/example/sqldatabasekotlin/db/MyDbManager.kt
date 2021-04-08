@@ -5,6 +5,8 @@ import android.content.Context
 import android.database.sqlite.SQLiteDatabase
 import android.provider.BaseColumns
 import com.example.sqldatabasekotlin.ListItem
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 class MyDbManager(val context: Context) {
     val myDbHelper = MyDbHelper(context)
@@ -13,7 +15,7 @@ class MyDbManager(val context: Context) {
     fun OpenDb(){
         db = myDbHelper.writableDatabase
     }
-    fun InsertToDb(title:String,content:String,image:String,time:String){
+     suspend fun InsertToDb(title:String,content:String,image:String,time:String) = withContext(Dispatchers.IO){
         val values = ContentValues().apply {
             put(MyDbNameClass.COLUMN_NAME_TITLE,title)
             put(MyDbNameClass.COLUMN_NAME_CONTENT,content)
@@ -24,7 +26,7 @@ class MyDbManager(val context: Context) {
 
     }
 
-    fun UpdateItem(title:String,content:String,image:String,id:Int,time: String){
+     suspend fun UpdateItem(title:String,content:String,image:String,id:Int,time: String) = withContext(Dispatchers.IO){
         val selection = BaseColumns._ID + "=$id"
         val values = ContentValues().apply {
             put(MyDbNameClass.COLUMN_NAME_TITLE,title)
@@ -35,7 +37,7 @@ class MyDbManager(val context: Context) {
         db?.update(MyDbNameClass.TABLE_NAME,values,selection,null)
 
     }
-    fun ReadDbData(searchtext:String):ArrayList<ListItem>{
+   suspend fun ReadDbData(searchtext:String):ArrayList<ListItem> = withContext(Dispatchers.IO){
         val dataList = ArrayList<ListItem>()
         val selection = "${MyDbNameClass.COLUMN_NAME_TITLE} like?"
 
@@ -58,7 +60,7 @@ class MyDbManager(val context: Context) {
             }
         cursor.close()
 
-        return dataList
+        return@withContext dataList
     }
     fun CloseDb(){
         myDbHelper.close()

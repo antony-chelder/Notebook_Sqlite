@@ -16,6 +16,10 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.sqldatabasekotlin.db.MyAdapter
 import com.example.sqldatabasekotlin.db.MyDbManager
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import java.util.*
 import kotlin.collections.ArrayList
 
@@ -24,6 +28,7 @@ class MainActivity : AppCompatActivity() {
     private var soundclick = 0
     val myDbManager = MyDbManager(this)
     val myAdapter = MyAdapter(ArrayList(), this)
+    private var job : Job? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -37,7 +42,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         myDbManager.OpenDb()
-        FillAdapter()
+        FillAdapter("")
     }
     override fun onDestroy() {
         super.onDestroy()
@@ -81,18 +86,23 @@ class MainActivity : AppCompatActivity() {
         soundclick = sound!!.load(this, R.raw.poof, 1)
     }
 
-    fun FillAdapter(){
-        val list = myDbManager.ReadDbData("")
-        list.reverse()
-        myAdapter.UpdateAdapter(list)
-        
-        
-        if(list.size>0){
-            tv_elements.visibility = View.GONE
-        }else{
-            tv_elements.visibility = View.VISIBLE
+    fun FillAdapter(text:String){
+        job?.cancel()
+        job = CoroutineScope(Dispatchers.Main).launch {
+            val list = myDbManager.ReadDbData(text)
+            list.reverse()
+            myAdapter.UpdateAdapter(list)
+
+
+            if(list.size>0){
+                tv_elements.visibility = View.GONE
+            }else{
+                tv_elements.visibility = View.VISIBLE
+
+            }
 
         }
+
     }
     private fun initSearchView(){
         searchView2.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
@@ -102,14 +112,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onQueryTextChange(newText: String?): Boolean {
-                val list = myDbManager.ReadDbData(newText!!)
-                myAdapter.UpdateAdapter(list)
-                if (list.size > 0) {
-                    tv_elements.visibility = View.GONE
-                } else {
-                    tv_elements.visibility = View.VISIBLE
-
-                }
+                FillAdapter(newText!!)
                 return true
             }
         })
@@ -130,17 +133,7 @@ class MainActivity : AppCompatActivity() {
            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                myAdapter.DeletefromAdapter(viewHolder.adapterPosition, myDbManager)
                sound!!.play(soundclick, 1f, 1f, 1, 0, 1f)
-               val list = myDbManager.ReadDbData("")
-               myAdapter.UpdateAdapter(list)
-
-               if (list.size > 0) {
-                   tv_elements.visibility = View.GONE
-               } else {
-                   tv_elements.visibility = View.VISIBLE
-
-               }
-
-
+               FillAdapter("")
            }
        })
    }
